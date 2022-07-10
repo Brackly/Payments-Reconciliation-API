@@ -3,12 +3,11 @@ from pydantic import BaseModel
 
 
 class Payment(BaseModel):
-    TransactionID:str
-    DateTime:str
-    Amount:int
-    CustomerNumber:int
-    CustomerName:str
-    is_Checked: Optional[bool]= None
+    TransactionID: str
+    DateTime: str
+    Amount: int
+    CustomerNumber: str
+    CustomerName: str
 
 class Account(BaseModel):
     AccountID:str
@@ -16,4 +15,4 @@ class Account(BaseModel):
     DateTime:str
     PaymentsCountToday:int
     PaymentsCountTotal:int
-    
+
