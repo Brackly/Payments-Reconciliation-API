@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.model import Payment
+from model import Payment
 #from .model import Payment
 #from .model import Account
 
