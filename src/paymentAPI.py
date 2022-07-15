@@ -1,15 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Request
 from mpesa import mpesa_auth_token,C2B_register_url,C2B_lipa_na_mpesa,stk_push
 from model import Payment
+import requests
 #from .model import Payment
 #from .model import Account
 
 app=FastAPI()
 
-payments={
-  "access_token": "SO4hig1BNmb4klJdfriVQBLSK49F",
-  "expires_in": "3599"
-}
+payments=[]
 account={
     "AccountID":"656119",
     "AccountBalance":0,
@@ -23,6 +21,7 @@ def home():
 
 @app.get('/payments')
 def get_all_payments():
+    print(payments[0])
     return payments
   
 @app.get('/account')
@@ -31,7 +30,9 @@ def get_account_details():
 
 @app.post('/payments/create')
 def create_manual_payment(payment: Payment):
-    payments.append(payment.dict())
+    url = 'http://127.0.0.1:8000/mpesa/confirmation-url'
+    myobj = payment.json()
+    x = requests.post(url, json = myobj)
     return {"payments added"}
 
 @app.delete('/payments/delete/{TransactionID}')
@@ -42,20 +43,28 @@ def delete_payment(TransactionID):
     return {"payment deleted"}
 
 
-@app.get('/register')
+@app.get('mpesa/register')
 def register_url():
     register_url=C2B_register_url()
     return { "message":register_url}
 
-@app.get('/pull-payments')
+@app.get('mpesa/pull-payments')
 def pull_payments_url():
     response=C2B_lipa_na_mpesa(1,254705912645,'rent')
     return { "message":response}
 
-@app.get('/stk-push')
+@app.get('mpesa/stk-push')
 def stk_push_url():
     response=stk_push(1,254741806859)
     return { "message":response}
+
+@app.post('/mpesa/confirmation-url')
+async def mpesa_confirmation_url(request:Request):
+    try:
+        payments.append( await request.json())
+        return await request.json()
+    except Exception as error:
+        return ({"error":error})
 
 
 
