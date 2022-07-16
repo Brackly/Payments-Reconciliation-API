@@ -12,7 +12,7 @@ class Payment(BaseModel):
     FirstName : str
     MiddleName  : str
     LastName  : str
-    seen: bool
+    seen: bool=False
 
 class Account(BaseModel):
     AccountBalance:int
