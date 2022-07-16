@@ -69,11 +69,11 @@ def stk_push_url():
     response=push.stk_push(1,"254741806859","milk","desc")
     return { "message":response}
 
-#@app.post('/mpesa/confirmation-url')
-#async def mpesa_confirmation_url(request:Request):
-    #try:
-       # print(await request.json())
-        #payments.append( await request.json())
-       # return await request.json()
-    #except Exception as error:
-        #return ({"error":error})
+@app.post('/mpesa/confirmation-url')
+async def mpesa_confirmation_url(request:Request):
+    try:
+        print(await request.json())
+        payments.append( await request.json())
+        return await request.json()
+    except Exception as error:
+        return ({"error":error})
