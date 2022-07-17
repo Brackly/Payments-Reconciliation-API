@@ -1,20 +1,19 @@
+
+from typing import Optional
 from pydantic import BaseModel
+
+
 class Payment(BaseModel):
-    TransactionType: str
-    TransactionID: int
+    TransactionID: str
     DateTime: str
     Amount: int
-    BusinessShortCode: str
-    BillRefNumber: str
-    OrgAccountBalance: float
-    ThirdPartyTransID: str
-    MSISDN : int
-    FirstName : str
-    MiddleName  : str
-    LastName  : str
-    seen: bool=False
+    CustomerNumber: str
+    CustomerName: str
 
 class Account(BaseModel):
+    AccountID:str
     AccountBalance:int
     DateTime:str
+    PaymentsCountToday:int
+    PaymentsCountTotal:int
 
