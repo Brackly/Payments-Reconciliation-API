@@ -1,38 +1,68 @@
 from urllib import request
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,status
+from db import SessionLocal
 from model import Payment
 import requests
 from mpesa.C2B import C2B
 from mpesa.Mpesa_Express import Mpesa_Express
-#from .model import Payment
+from pydantic import BaseModel
 #from .model import Account
 
 app=FastAPI()
+db=SessionLocal()
 
-payments=[]
-account={
-    "AccountID":"656119",
-    "AccountBalance":0,
-    "DateTime":"str",
-    "PaymentsCountToday":0,
-    "PaymentsCountTotal":0}
+class Payment():
+    TransactionType: str
+    TransactionID: int
+    DateTime: str
+    Amount: int
+    BusinessShortCode: str
+    BillRefNumber: str
+    OrgAccountBalance: float
+    ThirdPartyTransID: str
+    MSISDN : str
+    FirstName : str
+    MiddleName  : str
+    LastName  : str
 
-@app.get('/')
-def home():
-    return {"Message":"Welcome Home"}
+    class Config:
+        orm_mode:True
 
+def createpayment(payment):
+    try:
+        newpayment=Payment(
+            TransactionType=payment["TransactionType"],
+            TransactionID=payment["TransactionType"],
+            DateTime=payment["TransactionType"],
+            Amount=payment["TransactionType"],
+            BusinessShortCode=payment["TransactionType"],
+            BillRefNumber=payment["TransactionType"],
+            OrgAccountBalance=payment["TransactionType"],
+            ThirdPartyTransID=payment["TransactionType"],
+            MSISDN=payment["TransactionType"],
+            FirstName=payment["TransactionType"],
+            MiddleName=payment["TransactionType"],
+            LastName=payment["TransactionType"]) 
+        db.add()
+        return newpayment
+    except Exception as error:
+        return error
+
+# <-- GET ALL PAYMENTS --> 
 @app.get('/payments')
 def get_all_payments():
-    print(payments)
-    return payments
-  
-@app.get('/account')
-def get_account_details():
-    return account
+    print('payments')
+    return 'payments'
+   
+# <-- POST A PAYMENT --> 
+@app.post('/payments/post')
+def post_payment(payment:Payment):
+    createpayment(payment)
+    return {"payments added"}
 
-@app.post('/payments/create')
-def create_manual_payment():
-
+# <-- TEST API CONFIRMATION URL --> 
+@app.post('/payments/test')
+def test_api(TransactionID):
     url = 'http://127.0.0.1:8000/mpesa/confirmation-url'
     myobj = {
             "TransactionID": "string",
@@ -41,16 +71,15 @@ def create_manual_payment():
             "CustomerNumber": "string",
             "CustomerName": "string"}
     x = requests.post(url, json=myobj)
-    return {"payments added"}
-
-@app.delete('/payments/delete/{TransactionID}')
-def delete_payment(TransactionID):
-    for payment in payments:
-        if payment["TransactionID"]==TransactionID:
-            payments.remove(payment)
     return {"payment deleted"}
 
 
+# <-- CHECK ACCOUNT STATUS -->   
+@app.get('/account')
+def get_account_details():
+    return 'account'
+   
+# <-- MPESA URLS--> 
 @app.get('/mpesa/register')
 def register_url():
    register=C2B()
@@ -69,11 +98,12 @@ def stk_push_url():
     response=push.stk_push(1,"254741806859","milk","desc")
     return { "message":response}
 
-#@app.post('/mpesa/confirmation-url')
-#async def mpesa_confirmation_url(request:Request):
-    #try:
-       # print(await request.json())
-        #payments.append( await request.json())
-       # return await request.json()
-    #except Exception as error:
-        #return ({"error":error})
+@app.post('/mpesa/confirmation-url')
+async def mpesa_confirmation_url(request:Request):
+    try:
+        print(await request.json())
+        payment=await request.json()
+        createpayment(payment)
+        return await request.json()
+    except Exception as error:
+        return ({"error":error})
