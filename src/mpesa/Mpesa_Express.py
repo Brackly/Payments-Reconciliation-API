@@ -41,6 +41,6 @@ class Mpesa_Express:
         }
         """%(self.shortcode,self.password,amount,phone_number,self.shortcode,phone_number,self.confirmationUrl,reference,desc)
 
-        print(payload)
         response = requests.request("POST",self.url, headers = self.headers, data = payload)
+        
         return response.json()
