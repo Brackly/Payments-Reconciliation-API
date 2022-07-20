@@ -17,10 +17,8 @@ class TokenAuth:
         try:
             headers={ 'Authorization': 'Basic '+ self.BASIC_AUTHORIZATION }
             response = requests.request("GET",self.url, headers = headers)
-            self.token=response.json()['access_token']
-            self.timestamp=datetime.datetime.now().strftime("%M")
-            print(self.token)
-            return self.token
+            token=response.json()['access_token']
+            return token
         except Exception as error:
             print(error)
             return error

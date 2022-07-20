@@ -1,34 +1,71 @@
-from urllib import request
-from fastapi import FastAPI,Request,status
-from model import Payment
-import requests
+from fastapi import FastAPI,Request,Depends,status
 from mpesa.C2B import C2B
 from mpesa.Mpesa_Express import Mpesa_Express
-from pydantic import BaseModel
-#from .model import Account
+from schema import PaymentRequest
+from database import getdb
+from model import Payment
+from sqlalchemy.orm import Session
 
 app=FastAPI()
 
+
+def create_payment(payment,db)-> str:
+    if payment:
+        return "Payment already exists"
+    try:
+        new_payment=Payment(
+            TransactionType=payment.TransactionType,
+            TransID=payment.TransID,
+            TransTime=payment.TransTime,
+            TransAmount=payment.TransAmount,
+            BusinessShortCode=payment.BusinessShortCode,
+            BillRefNumber=payment.BillRefNumber,
+            InvoiceNumber=payment.InvoiceNumber,
+            OrgAccountBalance=payment.OrgAccountBalance,
+            ThirdPartyTransID=payment.ThirdPartyTransID,
+            MSISDN=payment.MSISDN,
+            FirstName=payment.FirstName
+        )
+        
+        db.add(new_payment)
+        db.commit()
+        return f"Success!! Payment with payment id {new_payment.TransID} added."
+    except Exception as error:
+        return error
+
+
+
+
 # <-- GET ALL PAYMENTS --> 
 @app.get('/payments')
-def get_all_payments():
-    pass
+def get_all_payments(db:Session=Depends(getdb)):
+    return db.query(Payment).all()
+
+@app.get('/payment/')
+def get_a_payment(TransID: str,db:Session=Depends(getdb)):
+    payment= db.query(Payment).filter(Payment.TransID==TransID).first()
+    if payment is None:
+        return{"Status":status.HTTP_404_NOT_FOUND,"message":"Payment not found"}
+    return payment
+
+@app.put('/payment/seen')
+def mark_as_seen(TransID: str,db:Session=Depends(getdb)):
+    payment=db.query(Payment).filter(Payment.TransID==TransID)
+    if payment is None:
+        return{"Status":status.HTTP_404_NOT_FOUND,"message":"Payment not found"}
+    payment.seen=True
+    db.add(payment)
+    db.commit()
+    print(payment.seen)
+    return payment
   
-
 @app.post('/payments/create')
-def create_manual_payment():
-    pass
-
-@app.delete('/payments/delete/{TransactionID}')
-def delete_payment(TransactionID):
-    pass
+def create_manual_payment(payment:PaymentRequest,db:Session=Depends(getdb)):
+    response=create_payment(payment,db)
+    return {"response":response}
+    
 
 
-# <-- CHECK ACCOUNT STATUS -->   
-@app.get('/account')
-def get_account_details():
-    return 'account'
-   
 # <-- MPESA URLS--> 
 @app.get('/mpesa/register')
 def register_url():
